@@ -1,7 +1,7 @@
 # %% imports
 from dataclasses import dataclass
 from itertools import combinations
-
+import matplotlib.pyplot as plt
 import math
 # %% main 
 
@@ -63,6 +63,7 @@ def speed_gain(cards_in_facility: list, FL_level: int, friendship: bool, mood) -
     
     return gain
 
+
 # Calculates the expected value of said stat
 def expected_speed_gain(deck, FL_level: int,friendship, mood) -> float:
     """
@@ -71,6 +72,7 @@ def expected_speed_gain(deck, FL_level: int,friendship, mood) -> float:
     """
     ev = 0.0
     for subset in all_subsets(deck):
+        current = subset
         # probability of exactly this subset appearing
         p = 1.0
         # calculates probability of every outcome
@@ -79,6 +81,18 @@ def expected_speed_gain(deck, FL_level: int,friendship, mood) -> float:
         ev += p * speed_gain(subset, FL_level,friendship, mood)
     return ev
 
+# Gets the probability of each possible combination and returns them as a dictionary
+def probability_outcome(deck):
+    outcomes = {}
+    for subset in all_subsets(deck):
+        # probability of exactly this subset appearing
+        p = 1.0
+        # calculates probability of every outcome
+        for c in deck:
+            p *= c.appear_prob() if c in subset else (1.0 - c.appear_prob())
+        tupple_names = tuple(card.name for card in subset)                  # Set the tupple name as a tuple
+        outcomes[tupple_names] = p                                          # Set the outcome to the probability 
+    return outcomes
 # ---------- Data model (More cards to be added) ----------
 # ---------- Your cards (Speed training: bonus=Speed Bonus) ----------
 matikanefukukitaru = SupportCard("Matikanefukukitaru", "speed", fb=0.2, me=0.45, te=0.10, bonus=0.0, sp=0)
@@ -157,6 +171,20 @@ print("Expected gains = ", get_ev_from_fail(ev,20))
 print(should_train(ev, 50, 26))
 
 print(recreation(5,mood))
+#%% Side preojects
+# ============== Multiple Support Cards Probability ============= 
+probs = probability_outcome(deck)
+print(probs)
+count_dist = {}
+for subset,p in probs.items():
+    n = len(subset)
+    count_dist[n] = count_dist.get(n,0) + p     # .get returns 0 if it doesn't exists else it returns the value of n
+print(count_dist)
 
+# Plotting
+plt.bar(count_dist.keys(), count_dist.values())
+plt.xlabel("number of cards")
+plt.ylabel("chance of success")
+plt.show()
 
 # %%
